@@ -1,0 +1,35 @@
+{
+  "name": "node-isal",
+  "version": "0.1.0",
+  "main": "build/Release/node-isal.node",
+  "description": "Node.js addon wrapping Intel ISA-L",
+  "main": "index.js",
+  "keywords": [
+    "isa-l",
+    "node"
+  ],
+  "author": {
+    "name": "Jingfu Ye",
+    "email": "jingfu.ye@intel.com"
+  },
+  "homepage": "https://github.com/yejingfu/node-isal",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "file:LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yejingfu/node-isal.git"
+  },
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "test": "node ./test/hello.js"
+  },
+  "dependencies": {
+    "nan": "*"
+  },
+  "gypfile": true
+}
+
