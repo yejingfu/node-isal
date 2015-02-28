@@ -7,12 +7,13 @@
       ],
 
       'variables': {
-        'ISAL_PATH': '~/labs/isal/src_2.12',
+        'ISAL_PATH': '../src_2.12',
       },
 
       'sources': [
         'src/main.cc',
         'src/util.cc',
+        'src/crcwrapper.cc',
       ],
 
       'include_dirs': [
@@ -21,8 +22,8 @@
       ],
 
       'libraries': [
-        '-L<(ISAL_PATH)/bin'
-        '-lisa-l'
+        '-L$(srcdir)/<(ISAL_PATH)/bin',
+        '-lisa-l'  # make sure "libisa-l.a" must exist in correct folder
       ],
 
       'conditions': [
