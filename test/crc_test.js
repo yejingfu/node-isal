@@ -10,8 +10,10 @@ var buf = new Buffer(BUF_SIZE);
 for (var i = 0; i < BUF_SIZE; i++) {
   buf[i] = 0;
 }
-var crc = isal.crc16_t10dif(SEED, buf, BUF_SIZE);
-console.log('result: ' + crc);
+var crc1 = isal.crc16_t10dif_by4(SEED, buf, BUF_SIZE);
+console.log('crc16_t10dif_by4(0): ' + crc1);
+var crc2 = isal.crc32_ieee_by4(SEED, buf, BUF_SIZE);
+console.log('crc32_ieee_by4(0): ' + crc2);
 
 console.log('======Test CRC end');
 

@@ -10,6 +10,9 @@
         'ISAL_PATH': '../src_2.12',
       },
 
+      'cflags!': ['-fno-exceptions'],
+      'cflags_cc!':['-fnb-rtti', '-fno-exceptions', '-g', '-O0'],
+
       'sources': [
         'src/main.cc',
         'src/util.cc',
