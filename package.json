@@ -1,6 +1,6 @@
 {
   "name": "node-isal",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Node.js addon wrapping Intel ISA-L",
   "main": "index.js",
   "keywords": [
