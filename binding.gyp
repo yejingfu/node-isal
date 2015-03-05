@@ -7,7 +7,7 @@
       ],
 
       'variables': {
-        'ISAL_PATH': '../src_2.12',
+        'ISAL_PATH': '<!(echo ${ISAL_HOME})'
       },
 
       'cflags!': ['-fno-exceptions'],
@@ -21,11 +21,11 @@
 
       'include_dirs': [
         '<!(node -e \"require(\'nan\')\")',
-        '<(ISAL_PATH)/include',
+        '<(ISAL_PATH)/include'
       ],
 
       'libraries': [
-        '-L$(srcdir)/<(ISAL_PATH)/bin',
+        '-L<(ISAL_PATH)/bin',
         '-lisa-l'  # make sure "libisa-l.a" must exist in correct folder
       ],
 

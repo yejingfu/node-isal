@@ -1,7 +1,6 @@
 {
   "name": "node-isal",
-  "version": "0.1.0",
-  "main": "build/Release/node-isal.node",
+  "version": "0.1.3",
   "description": "Node.js addon wrapping Intel ISA-L",
   "main": "index.js",
   "keywords": [
@@ -24,7 +23,7 @@
     "url": "https://github.com/yejingfu/node-isal.git"
   },
   "scripts": {
-    "install": "node-gyp rebuild",
+    "install": "echo node-gyp rebuild",
     "test": "node ./test/hello.js"
   },
   "dependencies": {
