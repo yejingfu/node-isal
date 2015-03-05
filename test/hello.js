@@ -1,4 +1,5 @@
 var isal = require('../build/Release/isal');
+//var isal = require('node-isal');
 
 console.log('Test begin');
 
