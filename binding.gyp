@@ -17,6 +17,7 @@
         'src/main.cc',
         'src/util.cc',
         'src/crcwrapper.cc',
+        'src/aeswrapper.cc',
       ],
 
       'include_dirs': [

@@ -3,6 +3,7 @@
 #include <nan.h>
 
 #include "crcwrapper.h"
+#include "aeswrapper.h"
 
 using namespace v8;
 
@@ -54,6 +55,7 @@ void Initialize(Handle<Object> exports) {
   exports->Set(NanNew("printBuffer"), NanNew<FunctionTemplate>(PrintBuffer)->GetFunction());
 
   exportCRCComponent(exports);
+  exportAESComponent(exports);
 }
 
 NODE_MODULE(isal, Initialize)
