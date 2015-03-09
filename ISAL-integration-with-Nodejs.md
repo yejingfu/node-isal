@@ -74,9 +74,23 @@ To run the test, just execute from Node.js shell like below.
   $node test/aes_test.js
 ```
 
+This project is pushed on github, please get it from [https://github.com/yejingfu/node-isal](https://github.com/yejingfu/node-isal). As above note, it depends on Intel ISA-L to build this component, please contact me(jingfu.ye@intel.com) to get the ISA-L source code or binary.
+
 ## Demonstration
+This section gives a cool demonstration about how to invoke the "node-isal" in a real senario. It aslo compares the performance between ISA-L and non-ISA-L on data encryption, showing you how ISA-L accelerating your real work.
+
+This demonstration is a typical web application allowing to select any kind of file for data encryption. At background it would invoke Node.js build-in [crypto functions](https://nodejs.org/api/crypto.html) and the corresponding ISA-L functions individually and compare their efficiency. The comparison result is as blow:
+
+![snapshot](isal_crypto.png)
+
+From the result we can see the ISA-L has around 4.5 times speed increased comparing than Node.js build-in crypto functions. For encryption on huge batch of files, the performance benefit would be more visible.
+
+The demonstration is aslo located on the github and you can get it from here: [https://github.com/yejingfu/samples/tree/master/crypto/web](https://github.com/yejingfu/samples/tree/master/crypto/web). By the way it's a Node.js Express application. And you need to manually copy the "node-isal" component into the "node_moudules" before launching it.
 
 ## Future
+At present, only a small set of functions are exposed from the "node-isal" component. The target would be exposing all the functions in the ISA-L. The work is in progress now.
+
+Meanwhile we are gathering requirements from our customers and meet their real requirements with high priority. And on the other hand their feedbacks would improve the quality of the "node-isal".
 
 
 
