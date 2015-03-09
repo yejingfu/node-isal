@@ -14,7 +14,7 @@ The node-isal addon depends on Intel ISA-L library, so please set the environmen
   $node-gyp build
 ```
 ## Test
-1. CRC API testing
+- CRC API testing
 ```js
   // test.js
   var isal = require('node-isal');
@@ -30,7 +30,7 @@ The node-isal addon depends on Intel ISA-L library, so please set the environmen
   console.log('crc32_ieee_by4(0): ' + crc2);
 ```
 
-2. Crypto API testing
+- Crypto API testing
 ```js
 var KEY_BUF_SIZE = 16;
 var key1 = new Buffer(KEY_BUF_SIZE);
@@ -49,8 +49,7 @@ plainBuf = isal.XTS_AES_128_dec(cipherBuf, key1, key2, tw);
 console.log('decrypted plain data' + plainBuf.toString());
 ```
 
-3. Run test in Node.js
-Then run the file by node.js.
+- Run test in Node.js
 ```bash
 $ node test.js
 ```
