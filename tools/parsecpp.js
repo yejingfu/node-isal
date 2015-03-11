@@ -3,8 +3,25 @@ var path = require('path');
 var tokenizer_class = require('tokenizer');
 
 var headerfiles = [
-  'test.h'
+  'aes_xts.h',
+  'crc.h',
+  'erasure_code.h',
+  'gf_vect_mul.h',
+  'igzip_lib.h',
+  'mb_md5.h',
+  'mb_sha1.h',
+  'mb_sha256.h',
+  'mb_sha512.h',
+  'md5_mb.h',
+  'sha.h',
+  'sha1_mb.h',
+  'sha256_mb.h',
+  'sha512_mb.h',
+  'mem_routines.h',
+  'raid.h',
 ];
+
+//var headerfiles = ['mb_md5.h'];
 
 var HeaderParser = function(filePath) {
   this.filePath = filePath;
@@ -18,6 +35,9 @@ HeaderParser.prototype = {
     var outStream = fs.createWriteStream(outPath);
 
     var parsingFunc = false;
+    var parsingClass = false;
+    var numClassCurly = 0;
+    var expectClassEndHalfComma = false;
     var funcName = '';
     var self = this;
 
@@ -32,6 +52,36 @@ HeaderParser.prototype = {
           token.type !== 'areacommentcontinue' &&
           token.type !== 'whitespace') {
         //
+        if (token.type === 'opencurly' && parsingClass) {
+          numClassCurly++;
+          console.log('Jeff: curly++:'+numClassCurly);
+        } else if (token.type === 'closecurly' && parsingClass) {
+          numClassCurly--;
+          console.log('Jeff: curly--:'+numClassCurly);
+        }
+
+        if (parsingClass) {
+          if (token.type === 'closecurly') {
+            parsingClass = false;
+            expectClassEndHalfComma = true;
+          }
+          return;
+        } else {
+          if (token.type === 'identifier' && (
+              token.content === 'struct' ||
+              token.content === 'class')) {
+            parsingClass = true;
+            return;
+          }
+        }
+
+        if (token.type === 'halfcomma' && expectClassEndHalfComma) {
+          expectClassEndHalfComma = false;
+          return;
+        }
+
+        if (numClassCurly > 0 || expectClassEndHalfComma > 0) return;
+
         if (parsingFunc) {
           funcName += token.content + ' ';
           if (token.type === 'halfcomma') {
