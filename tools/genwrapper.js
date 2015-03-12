@@ -71,7 +71,8 @@ var excluded = [
 function main() {
   var fullpath;
   var generators = [];
-  for (var i = 0, len = headerfiles.length; i < 1; i++) {
+  for (var i = 0, len = headerfiles.length; i < len; i++) {
+    if (i !== 0) continue;
     var headername = headerfiles[i];
     fullpath = path.join('include', headername) + '.h.func';
     var gen = new Generator(headername, fullpath);
@@ -153,7 +154,13 @@ Generator.prototype = {
       APINames.push(funcName);
       self.writeToSourceFile(sourceStream, funcRet, funcName, funcArgs);
     }
-    var sourceEnd = ['void export_'+self.headerName+'_Component(v8::Handle<v8::Object>& exports) {'];
+    if (badlines.length > 0) {
+      console.log('Bad functions detected: total ' + badlines.length);
+      for (i = 0, len = badlines.length; i < len; i++) {
+        console.log('' + i +': ' + badlines[i]);
+      }
+    }
+    var sourceEnd = ['void export_'+self.headerName+'_component(v8::Handle<v8::Object>& exports) {'];
     for (i = 0, len = APINames.length; i < len; i++) {
       sourceEnd.push('  exports->Set(NanNew("'+APINames[i]+'"), NanNew<FunctionTemplate>('+APINames[i]+')->GetFunction());');
     }
@@ -178,7 +185,7 @@ Generator.prototype = {
 '',
 '#include <v8.h>',
 '',
-'void export_'+compName+'_omponent(v8::Handle<v8::Object>& exports);',
+'void export_'+compName+'_component(v8::Handle<v8::Object>& exports);',
 '',
 '#endif  // ISAL_'+compNameUpper+'_WRAPPER_H_',
 ''].join('\n');
