@@ -113,7 +113,7 @@ Generator.prototype = {
   parse: function(data) {
     var self = this;
     var headerPath = path.join(self.outDir, self.headerName) + '_wrapper.h';
-    var sourcePath = path.join(self.outDir, self.headerName) + '_wrapper.cpp';
+    var sourcePath = path.join(self.outDir, self.headerName) + '_wrapper.cc';
     self.writeToHeaderFile(headerPath, self.headerName);
     var sourceStream = fs.createWriteStream(sourcePath);
     var sourceBegin = [
