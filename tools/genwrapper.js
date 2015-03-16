@@ -273,7 +273,12 @@ Generator.prototype = {
 ''
           ].join('\n'));
       } else if (argType === 'LZ_Stream1 *') {
-        comment += '  // TODO: support LZ_Stream1 * as argument type.\n';
+        //comment += '  // TODO: support LZ_Stream1 * as argument type.\n';
+        stream.write([
+'  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
+'  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
+''
+          ].join('\n'));
       } else if (argType === 'MD5_MB_MGR *') {
         comment += '  // TODO: support MD5_MB_MGR * as argument type.\n';
       } else if (argType === 'MD5_MB_MGR_X8X2 *') {
@@ -349,12 +354,19 @@ Generator.prototype = {
     } else if (argList.length === 1) {
       argstr = argList[0];
     }
-    stream.write([
+    if (funcRetStr === 'void') {
+      stream.write([
+'',
+'  ' + funcName + '('+argList.join(', ')+');',
+''
+        ].join('\n'));
+    } else {
+      stream.write([
 '',
 '  ' + funcRetStr + ' result = ' + funcName + '('+argList.join(', ')+');',
 ''
-      ].join('\n'));
-
+        ].join('\n'));
+    }
     comment = '';
 
     if (funcRetStr === 'UINT16' || funcRetStr === 'UINT32' || 
