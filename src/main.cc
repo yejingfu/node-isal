@@ -80,6 +80,7 @@ void Initialize(Handle<Object> exports) {
   exports->Set(NanNew("generateBuffer"), NanNew<FunctionTemplate>(GenBuffer)->GetFunction());
   exports->Set(NanNew("printBuffer"), NanNew<FunctionTemplate>(PrintBuffer)->GetFunction());
 
+  export_util_component(exports);
   exportCRCComponent(exports);
   exportAESComponent(exports);
 
