@@ -12,19 +12,23 @@ namespace {
     AT_UINT32,
     AT_UINT16,
     AT_UINT8
-  }
+  };
 
-  bool cast_array(Local<Value>& src, uint32_t *dst, uint32_t len, Array_TYPE at) {
+  bool cast_array(Local<Value> src, void *dst, uint32_t len, Array_TYPE at) {
     if (!dst || !src->IsArray()) return false;
-    Local<Array> arr = Array::Cast(src);
-    if (!arr && arr->Length() < len) return false;
+    //Local<Array> arr = Array::Cast(src);
+    Local<Array> arr = Local<Array>::Cast(src);
+    if (arr.IsEmpty() && arr->Length() < len) return false;
     for (uint32_t i = 0; i < len; i++) {
       if (at == AT_UINT32) {
-        dst[i] = (uint32_t)(arr->Get(i)->Int32Value());
+        uint32_t* p = (uint32_t*)dst;
+        p[i] = (uint32_t)(arr->Get(i)->Int32Value());
       } else if (at == AT_UINT16) {
-        dst[i] = (uint16_t)(arr->Get(i)->Int32Value());
+        uint16_t* p = (uint16_t*)dst;
+        p[i] = (uint16_t)(arr->Get(i)->Int32Value());
       } else if (at == AT_UINT8) {
-        dst[i] = (uint8_t)(arr->Get(i)->Int32Value());
+        uint8_t* p = (uint8_t*)dst;
+        p[i] = (uint8_t)(arr->Get(i)->Int32Value());
       }
     }
     return true;
@@ -61,7 +65,7 @@ NAN_METHOD(create_LZ_State1) {
   // BitBuf2
   uint64_t m_bits = (uint64_t)args[idx++]->Int32Value();
   uint32_t m_bit_count = (uint32_t)args[idx++]->Int32Value();
-  uint8_t *m_out_buff = (uint8_t*)(node::Buffer::Data(args[idx++]->ToObject()));
+  uint8_t *m_out_buf = (uint8_t*)(node::Buffer::Data(args[idx++]->ToObject()));
   uint8_t *m_out_end = (uint8_t*)(node::Buffer::Data(args[idx++]->ToObject()));
   uint8_t *m_out_start = (uint8_t*)(node::Buffer::Data(args[idx++]->ToObject()));
 
@@ -103,7 +107,7 @@ NAN_METHOD(create_LZ_State1) {
     NanReturnUndefined();
   }
 
-  LZ_Stream1 * lz_stream1 = malloc(sizeof(LZ_Stream1));
+  LZ_Stream1 * lz_stream1 = (LZ_Stream1*)malloc(sizeof(LZ_Stream1));
   lz_stream1->next_in = next_in;
   lz_stream1->avail_in = avail_in;
   lz_stream1->total_in = total_in;
@@ -115,15 +119,16 @@ NAN_METHOD(create_LZ_State1) {
   lz_stream1->bytes_consumed = bytes_consumed;
   lz_stream1->internal_state.b_bytes_valid = b_bytes_valid;
   lz_stream1->internal_state.b_bytes_processed = b_bytes_processed;
-  lz_stream1->internal_state.crc = crc;
+  lz_stream1->internal_state.file_start = file_start;
+  memcpy(lz_stream1->internal_state.crc, crc, 64);
   lz_stream1->internal_state.bitbuf.m_bits = m_bits;
   lz_stream1->internal_state.bitbuf.m_bit_count = m_bit_count;
   lz_stream1->internal_state.bitbuf.m_out_buf = m_out_buf;
   lz_stream1->internal_state.bitbuf.m_out_end = m_out_end;
   lz_stream1->internal_state.bitbuf.m_out_start = m_out_start;
-  lz_stream1->internal_state.state = state;
+  lz_stream1->internal_state.state = (LZ_State1_state)state;
   lz_stream1->internal_state.count = count;
-  lz_stream1->internal_state.tmp_out_buff = tmp_out_buff;
+  memcpy(lz_stream1->internal_state.tmp_out_buff, tmp_out_buff, 16);
   lz_stream1->internal_state.tmp_out_start = tmp_out_start;
   lz_stream1->internal_state.tmp_out_end = tmp_out_end;
   lz_stream1->internal_state.last_flush = last_flush;
@@ -137,13 +142,14 @@ NAN_METHOD(create_LZ_State1) {
   lz_stream1->internal_state.overflow_submitted = overflow_submitted;
   lz_stream1->internal_state.overflow = overflow;
   lz_stream1->internal_state.had_overflow = had_overflow;
-  lz_stream1->internal_state.buffer = buffer;
-  lz_stream1->internal_state.head = head;
+  memcpy(lz_stream1->internal_state.buffer, buffer, BSIZE + 16);
+  memcpy(lz_stream1->internal_state.head, head, HASH_SIZE);
+
 
   // create JS object
   Local<ObjectTemplate> tpl = ObjectTemplate::New();
   tpl->SetInternalFieldCount(1);
-  Local<Oject> jsObj = NanNew(tpl)->NewInstance();
+  Local<Object> jsObj = NanNew(tpl)->NewInstance();
   //jsObj->Set(NanNew<String>("id"), NanNew<Integer>(1));
   NanSetInternalFieldPointer(jsObj, 0, lz_stream1);
   NanReturnValue(jsObj);
@@ -156,7 +162,7 @@ NAN_METHOD(release_LZ_State1) {
     NanReturnValue(NanFalse());
   }
   Local<Object> jsObj = args[0]->ToObject();
-  if (!jsObj || jsObj->InternalFieldCount() != 1) {
+  if (jsObj.IsEmpty() || jsObj->InternalFieldCount() != 1) {
     NanThrowTypeError("Invalid arguments");
     NanReturnValue(NanFalse());
   }

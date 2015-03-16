@@ -2,6 +2,7 @@
 #include <node.h>
 #include <nan.h>
 
+#include "util.h"
 #include "crcwrapper.h"
 #include "aeswrapper.h"
 
