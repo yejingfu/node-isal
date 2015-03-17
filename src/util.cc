@@ -202,7 +202,7 @@ NAN_METHOD(create_JOB_MD5) {
   job_md5->buffer = buffer;
   job_md5->len = len;
   job_md5->len_total = len_total;
-  memcpy(job_md5->result_digest, result_digest, NUM_MD5_DIGEST_WORDS);
+  memcpy(job_md5->result_digest, result_digest, NUM_MD5_DIGEST_WORDS * 4);
   job_md5->status = (JOB_STS)status;
   job_md5->flags = flags;
   job_md5->user_data = user_data;
@@ -231,10 +231,84 @@ NAN_METHOD(release_JOB_MD5) {
   NanReturnValue(NanTrue());
 }
 
+NAN_METHOD(create_MD5_HMAC_LANE_DATA) {
+  NanScope();
+  if (args.Length() != 5) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  UINT8 *extra_block = (UINT8*)(node::Buffer::Data(args[idx++]->ToObject()));
+  JOB_MD5 *job_in_lane = (JOB_MD5*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  UINT32 extra_blocks = (UINT32)args[idx++]->Int32Value();
+  UINT32 size_offset = (UINT32)args[idx++]->Int32Value();
+  UINT32 start_offset = (UINT32)args[idx++]->Int32Value();
+  MD5_HMAC_LANE_DATA *data = (MD5_HMAC_LANE_DATA*)malloc(sizeof(MD5_HMAC_LANE_DATA));
+  memcpy(data->extra_block, result_digest, NUM_MD5_DIGEST_WORDS);
+  data->job_in_lane = job_in_lane;
+  data->extra_blocks = extra_blocks;
+  data->size_offset = size_offset;
+  data->start_offset = start_offset;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, data);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_MD5_HMAC_LANE_DATA) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  MD5_HMAC_LANE_DATA* data = (MD5_HMAC_LANE_DATA*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(data);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+/**
+* MD5_MB_MGR
+*/
+NAN_METHOD(create_MD5_MB_MGR) {
+  NanScope();
+  if (args.Length() != 7) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  UINT32 digest[NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES];
+  if (cast_array(args[idx++], digest, NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES, AT_UINT32)) {
+    NanThrowTypeError("Failed to parse array digest[NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES]");
+    NanReturnUndefined();
+  }
+  UINT8* data_ptr[NUM_MD5_LANES];
+  Local<Array> arr = Local<Array>::Cast(args[idx++]);
+  if (arr.IsEmpty() && arr->Length() < NUM_MD5_LANES) return false;
+  for (int i = 0; i < NUM_MD5_LANES; i++) {
+    data_ptr[i] = (UINT8*)(node::Buffer::Data(arr->Get(i)->ToObject()));
+  }
+
+}
+
+NAN_METHOD(release_MD5_MB_MGR) {
+
+}
+
+/**
+* MD5_MB_MGR_X8X2
+*/
+
+
 
 void export_util_component(v8::Handle<v8::Object>& exports) {
   exports->Set(NanNew("create_LZ_State1"), NanNew<FunctionTemplate>(create_LZ_State1)->GetFunction());
   exports->Set(NanNew("release_LZ_State1"), NanNew<FunctionTemplate>(release_LZ_State1)->GetFunction());
+
+  exports->Set(NanNew("create_MD5_HMAC_LANE_DATA"), NanNew<FunctionTemplate>(create_MD5_HMAC_LANE_DATA)->GetFunction());
+  exports->Set(NanNew("release_MD5_HMAC_LANE_DATA"), NanNew<FunctionTemplate>(release_MD5_HMAC_LANE_DATA)->GetFunction());
   exports->Set(NanNew("create_JOB_MD5"), NanNew<FunctionTemplate>(create_JOB_MD5)->GetFunction());
   exports->Set(NanNew("release_JOB_MD5"), NanNew<FunctionTemplate>(release_JOB_MD5)->GetFunction());
 }
