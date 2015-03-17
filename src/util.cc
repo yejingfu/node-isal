@@ -63,7 +63,7 @@ NAN_METHOD(create_LZ_State1) {
   uint32_t b_bytes_processed = (uint32_t)args[idx++]->Int32Value();
   uint8_t *file_start = (uint8_t*)(node::Buffer::Data(args[idx++]->ToObject()));
   uint32_t crc[16];
-  if (cast_array(args[idx++], crc, 16, AT_UINT32)) {
+  if (!cast_array(args[idx++], crc, 16, AT_UINT32)) {
     NanThrowTypeError("Failed to parse array crc[16]");
     NanReturnUndefined();
   }
@@ -78,7 +78,7 @@ NAN_METHOD(create_LZ_State1) {
   uint32_t count = (uint32_t)args[idx++]->Int32Value();
 
   uint8_t tmp_out_buff[16];
-  if (cast_array(args[idx++], tmp_out_buff, 16, AT_UINT8)) {
+  if (!cast_array(args[idx++], tmp_out_buff, 16, AT_UINT8)) {
     NanThrowTypeError("Failed to parse array tmp_out_buff[16]");
     NanReturnUndefined();
   }
@@ -97,12 +97,12 @@ NAN_METHOD(create_LZ_State1) {
   uint32_t had_overflow = (uint32_t)args[idx++]->Int32Value();
 
   uint8_t buffer[BSIZE + 16];
-  if (cast_array(args[idx++], buffer, BSIZE + 16, AT_UINT8)) {
+  if (!cast_array(args[idx++], buffer, BSIZE + 16, AT_UINT8)) {
     NanThrowTypeError("Failed to parse array buffer[BSIZE + 16]");
     NanReturnUndefined();
   }
   uint16_t head[HASH_SIZE];
-  if (cast_array(args[idx++], head, HASH_SIZE, AT_UINT16)) {
+  if (!cast_array(args[idx++], head, HASH_SIZE, AT_UINT16)) {
     NanThrowTypeError("Failed to parse array head[HASH_SIZE]");
     NanReturnUndefined();
   }
@@ -191,7 +191,7 @@ NAN_METHOD(create_JOB_MD5) {
   UINT32 len = (UINT32)args[idx++]->Int32Value();
   UINT32 len_total = (UINT32)args[idx++]->Int32Value();
   UINT32 result_digest[NUM_MD5_DIGEST_WORDS];
-  if (cast_array(args[idx++], result_digest, NUM_MD5_DIGEST_WORDS, AT_UINT32)) {
+  if (!cast_array(args[idx++], result_digest, NUM_MD5_DIGEST_WORDS, AT_UINT32)) {
     NanThrowTypeError("Failed to parse array result_digest[NUM_MD5_DIGEST_WORDS]");
     NanReturnUndefined();
   }
@@ -225,8 +225,8 @@ NAN_METHOD(release_JOB_MD5) {
     NanThrowTypeError("Invalid arguments");
     NanReturnValue(NanFalse());
   }
-  JOB_MD5 *JOB_MD5 = (JOB_MD5*)NanGetInternalFieldPointer(jsObj, 0);
-  free(JOB_MD5);
+  JOB_MD5 *job_md5 = (JOB_MD5*)NanGetInternalFieldPointer(jsObj, 0);
+  free(job_md5);
   NanSetInternalFieldPointer(jsObj, 0, NULL);
   NanReturnValue(NanTrue());
 }
@@ -244,7 +244,7 @@ NAN_METHOD(create_MD5_HMAC_LANE_DATA) {
   UINT32 size_offset = (UINT32)args[idx++]->Int32Value();
   UINT32 start_offset = (UINT32)args[idx++]->Int32Value();
   MD5_HMAC_LANE_DATA *data = (MD5_HMAC_LANE_DATA*)malloc(sizeof(MD5_HMAC_LANE_DATA));
-  memcpy(data->extra_block, result_digest, NUM_MD5_DIGEST_WORDS);
+  memcpy(data->extra_block, extra_block, NUM_MD5_DIGEST_WORDS);
   data->job_in_lane = job_in_lane;
   data->extra_blocks = extra_blocks;
   data->size_offset = size_offset;
@@ -280,7 +280,7 @@ NAN_METHOD(create_MD5_MB_MGR) {
   }
   MD5_MB_MGR * mgr = (MD5_MB_MGR*)malloc(sizeof(MD5_MB_MGR));
   int idx = 0;
-  if (cast_array(args[idx++], mgr->args.digest, NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES, AT_UINT32)) {
+  if (!cast_array(args[idx++], mgr->args.digest, NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES, AT_UINT32)) {
     NanThrowTypeError("Failed to parse array digest[NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES]");
     free(mgr);
     NanReturnUndefined();
@@ -293,7 +293,7 @@ NAN_METHOD(create_MD5_MB_MGR) {
   for (int i = 0; i < NUM_MD5_LANES; i++) {
     mgr->args.data_ptr[i] = (UINT8*)(node::Buffer::Data(arr->Get(i)->ToObject()));
   }
-  if (cast_array(args[idx++], mgr->len, NUM_MD5_LANES, AT_UINT32)) {
+  if (!cast_array(args[idx++], mgr->lens, NUM_MD5_LANES, AT_UINT32)) {
     NanThrowTypeError("Failed to parse array len[NUM_MD5_LANES]");
     free(mgr);
     NanReturnUndefined();
@@ -306,7 +306,7 @@ NAN_METHOD(create_MD5_MB_MGR) {
     NanReturnUndefined();
   }
   for (int i = 0; i < NUM_MD5_LANES; i++) {
-    MD5_HMAC_LANE_DATA* pData = (MD5_HMAC_LANE_DATA*)NanGetInternalFieldPointer(arr2[i]->ToObject(), 0);
+    MD5_HMAC_LANE_DATA* pData = (MD5_HMAC_LANE_DATA*)NanGetInternalFieldPointer(arr2->Get(i)->ToObject(), 0);
     if (!pData) {
       NanThrowTypeError("Failed to parse array ldata[NUM_MD5_LANES] because of invalid MD5_HMAC_LANE_DATA");
       free(mgr);
@@ -333,7 +333,7 @@ NAN_METHOD(release_MD5_MB_MGR) {
     NanReturnValue(NanFalse());
   }
   MD5_MB_MGR* mgr = (MD5_MB_MGR*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
-  free(MD5_MB_MGR);
+  free(mgr);
   NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
   NanReturnValue(NanTrue());
 }
@@ -349,20 +349,20 @@ NAN_METHOD(create_MD5_MB_MGR_X8X2) {
   }
   MD5_MB_MGR_X8X2 * mgr = (MD5_MB_MGR_X8X2*)malloc(sizeof(MD5_MB_MGR_X8X2));
   int idx = 0;
-  if (cast_array(args[idx++], mgr->args.digest, NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES, AT_UINT32)) {
+  if (!cast_array(args[idx++], mgr->args.digest, NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES_X8X2, AT_UINT32)) {
     NanThrowTypeError("Failed to parse array digest[NUM_MD5_DIGEST_WORDS*NUM_MD5_LANES]");
     free(mgr);
     NanReturnUndefined();
   }
   Local<Array> arr = Local<Array>::Cast(args[idx++]);
-  if (arr.IsEmpty() && arr->Length() < NUM_MD5_LANES) {
+  if (arr.IsEmpty() && arr->Length() < NUM_MD5_LANES_X8X2) {
     free(mgr);
     NanReturnUndefined();
   }
-  for (int i = 0; i < NUM_MD5_LANES; i++) {
+  for (int i = 0; i < NUM_MD5_LANES_X8X2; i++) {
     mgr->args.data_ptr[i] = (UINT8*)(node::Buffer::Data(arr->Get(i)->ToObject()));
   }
-  if (cast_array(args[idx++], mgr->len, NUM_MD5_LANES, AT_UINT32)) {
+  if (!cast_array(args[idx++], mgr->lens, NUM_MD5_LANES_X8X2, AT_UINT32)) {
     NanThrowTypeError("Failed to parse array len[NUM_MD5_LANES]");
     free(mgr);
     NanReturnUndefined();
@@ -375,7 +375,7 @@ NAN_METHOD(create_MD5_MB_MGR_X8X2) {
     NanReturnUndefined();
   }
   for (int i = 0; i < NUM_MD5_LANES; i++) {
-    MD5_HMAC_LANE_DATA* pData = (MD5_HMAC_LANE_DATA*)NanGetInternalFieldPointer(arr2[i]->ToObject(), 0);
+    MD5_HMAC_LANE_DATA* pData = (MD5_HMAC_LANE_DATA*)NanGetInternalFieldPointer(arr2->Get(i)->ToObject(), 0);
     if (!pData) {
       NanThrowTypeError("Failed to parse array ldata[NUM_MD5_LANES] because of invalid MD5_HMAC_LANE_DATA");
       free(mgr);
@@ -403,7 +403,7 @@ NAN_METHOD(release_MD5_MB_MGR_X8X2) {
     NanReturnValue(NanFalse());
   }
   MD5_MB_MGR_X8X2* mgr = (MD5_MB_MGR_X8X2*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
-  free(MD5_MB_MGR_X8X2);
+  free(mgr);
   NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
   NanReturnValue(NanTrue());
 }
