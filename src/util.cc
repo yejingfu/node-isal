@@ -3,6 +3,7 @@
 #include <nan.h>
 
 #include "igzip_lib.h"
+#include "mb_md5.h"
 
 using namespace v8;
 
@@ -35,6 +36,10 @@ namespace {
   }
 
 }
+
+/**
+*  LZ_State1
+*/
 
 NAN_METHOD(create_LZ_State1) {
   NanScope();
@@ -172,7 +177,64 @@ NAN_METHOD(release_LZ_State1) {
   NanReturnValue(NanTrue());
 }
 
+/**
+* JOB_MD5
+*/
+NAN_METHOD(create_JOB_MD5) {
+  NanScope();
+  if (args.Length() != 7) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  UINT8 *buffer = (UINT8*)(node::Buffer::Data(args[idx++]->ToObject()));
+  UINT32 len = (UINT32)args[idx++]->Int32Value();
+  UINT32 len_total = (UINT32)args[idx++]->Int32Value();
+  UINT32 result_digest[NUM_MD5_DIGEST_WORDS];
+  if (cast_array(args[idx++], result_digest, NUM_MD5_DIGEST_WORDS, AT_UINT32)) {
+    NanThrowTypeError("Failed to parse array result_digest[NUM_MD5_DIGEST_WORDS]");
+    NanReturnUndefined();
+  }
+  UINT32 status = (UINT32)args[idx++]->Int32Value();
+  UINT32 flags = (UINT32)args[idx++]->Int32Value();
+  void *user_data = (void*)(node::Buffer::Data(args[idx++]->ToObject()));
+  JOB_MD5 * job_md5 = (JOB_MD5*)malloc(sizeof(JOB_MD5));
+  job_md5->buffer = buffer;
+  job_md5->len = len;
+  job_md5->len_total = len_total;
+  memcpy(job_md5->result_digest, result_digest, NUM_MD5_DIGEST_WORDS);
+  job_md5->status = (JOB_STS)status;
+  job_md5->flags = flags;
+  job_md5->user_data = user_data;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, job_md5);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_JOB_MD5) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  Local<Object> jsObj = args[0]->ToObject();
+  if (jsObj.IsEmpty() || jsObj->InternalFieldCount() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  JOB_MD5 *JOB_MD5 = (JOB_MD5*)NanGetInternalFieldPointer(jsObj, 0);
+  free(JOB_MD5);
+  NanSetInternalFieldPointer(jsObj, 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+
 void export_util_component(v8::Handle<v8::Object>& exports) {
   exports->Set(NanNew("create_LZ_State1"), NanNew<FunctionTemplate>(create_LZ_State1)->GetFunction());
   exports->Set(NanNew("release_LZ_State1"), NanNew<FunctionTemplate>(release_LZ_State1)->GetFunction());
+  exports->Set(NanNew("create_JOB_MD5"), NanNew<FunctionTemplate>(create_JOB_MD5)->GetFunction());
+  exports->Set(NanNew("release_JOB_MD5"), NanNew<FunctionTemplate>(release_JOB_MD5)->GetFunction());
 }
