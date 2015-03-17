@@ -280,11 +280,26 @@ Generator.prototype = {
 ''
           ].join('\n'));
       } else if (argType === 'MD5_MB_MGR *') {
-        comment += '  // TODO: support MD5_MB_MGR * as argument type.\n';
+        //comment += '  // TODO: support MD5_MB_MGR * as argument type.\n';
+        stream.write([
+'  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
+'  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
+''
+          ].join('\n'));
       } else if (argType === 'MD5_MB_MGR_X8X2 *') {
-        comment += '  // TODO: support MD5_MB_MGR_X8X2 * as argument type.\n';
+        //comment += '  // TODO: support MD5_MB_MGR_X8X2 * as argument type.\n';
+        stream.write([
+'  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
+'  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
+''
+          ].join('\n'));
       } else if (argType === 'JOB_MD5 *') {
-        comment += '  // TODO: support JOB_MD5 * as argument type.\n';
+        //comment += '  // TODO: support JOB_MD5 * as argument type.\n';
+        stream.write([
+'  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
+'  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
+''
+          ].join('\n'));
       } else if (argType === 'SHA1_MB_MGR *') {
         comment += '  // TODO: support SHA1_MB_MGR * as argument type.\n';
       } else if (argType === 'SHA1_MB_MGR_X8 *') {
@@ -347,13 +362,13 @@ Generator.prototype = {
 
     var funcRetStr = funcRet.join(' ');
 
-    var argstr = '';
-    if (argList.length > 1) {
-      var last = argList.pop();
-      argstr = argList.join(', ') + last;
-    } else if (argList.length === 1) {
-      argstr = argList[0];
-    }
+    // var argstr = '';
+    // if (argList.length > 1) {
+    //   var last = argList.pop();
+    //   argstr = argList.join(', ') + last;
+    // } else if (argList.length === 1) {
+    //   argstr = argList[0];
+    // }
     if (funcRetStr === 'void') {
       stream.write([
 '',
@@ -386,7 +401,16 @@ Generator.prototype = {
     }/* else if (funcRetStr === 'void *') {
 
     } */else if (funcRetStr === 'JOB_MD5 *') {
-      comment = '  //TODO: return object of JOB_MD5 *';
+      //comment = '  //TODO: return object of JOB_MD5 *';
+      stream.write([
+'',
+'  Local<ObjectTemplate> tpl = ObjectTemplate::New();',
+'  tpl->SetInternalFieldCount(1);',
+'  Local<Object> retObj = NanNew(tpl)->NewInstance();',
+'  NanSetInternalFieldPointer(retObj, 0, result);',
+'  NanReturnValue(retObj);',
+''
+        ].join('\n'));
     } else if (funcRetStr === 'JOB_SHA1 *') {
       comment = '  //TODO: return object of JOB_SHA1 *';
     } else if (funcRetStr === 'JOB_SHA256 *') {
