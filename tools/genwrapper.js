@@ -272,20 +272,15 @@ Generator.prototype = {
 '  '+argType+' arg_'+index+' = ('+argType+')((args['+index+']->Int32Value())&0xFF);',
 ''
           ].join('\n'));
-      } else if (argType === 'LZ_Stream1 *' || argType === 'MD5_MB_MGR *' || argType === 'MD5_MB_MGR_X8X2 *' ||
-        argType === 'JOB_MD5 *') {
+      } else if (argType === 'LZ_Stream1 *' ||
+       argType === 'MD5_MB_MGR *' || argType === 'MD5_MB_MGR_X8X2 *' || argType === 'JOB_MD5 *' ||
+       argType === 'SHA1_MB_MGR *' || argType === 'SHA1_MB_MGR_X8 *' || argType === 'JOB_SHA1 *') {
         //comment += '  // TODO: support LZ_Stream1 * as argument type.\n';
         stream.write([
 '  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
 '  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
 ''
           ].join('\n'));
-      } else if (argType === 'SHA1_MB_MGR *') {
-        comment += '  // TODO: support SHA1_MB_MGR * as argument type.\n';
-      } else if (argType === 'SHA1_MB_MGR_X8 *') {
-        comment += '  // TODO: support SHA1_MB_MGR_X8 * as argument type.\n';
-      } else if (argType === 'JOB_SHA1 *') {
-        comment += '  // TODO: support JOB_SHA1 * as argument type.\n';
       } else if (argType === 'SHA256_MB_MGR *') {
         comment += '  // TODO: support SHA256_MB_MGR * as argument type.\n';
       } else if (argType === 'SHA256_MB_MGR_X8 *') {
@@ -380,7 +375,7 @@ Generator.prototype = {
         ].join('\n'));
     }/* else if (funcRetStr === 'void *') {
 
-    } */else if (funcRetStr === 'JOB_MD5 *') {
+    } */else if (funcRetStr === 'JOB_MD5 *' || funcRetStr === 'JOB_SHA1 *') {
       //comment = '  //TODO: return object of JOB_MD5 *';
       stream.write([
 '',
@@ -391,8 +386,6 @@ Generator.prototype = {
 '  NanReturnValue(retObj);',
 ''
         ].join('\n'));
-    } else if (funcRetStr === 'JOB_SHA1 *') {
-      comment = '  //TODO: return object of JOB_SHA1 *';
     } else if (funcRetStr === 'JOB_SHA256 *') {
       comment = '  //TODO: return object of JOB_SHA256 *';
     } else if (funcRetStr === 'JOB_SHA512 *') {
