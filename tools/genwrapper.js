@@ -275,25 +275,14 @@ Generator.prototype = {
       } else if (argType === 'LZ_Stream1 *' ||
        argType === 'MD5_MB_MGR *' || argType === 'MD5_MB_MGR_X8X2 *' || argType === 'JOB_MD5 *' ||
        argType === 'SHA1_MB_MGR *' || argType === 'SHA1_MB_MGR_X8 *' || argType === 'JOB_SHA1 *' ||
-       argType === 'SHA256_MB_MGR *' || argType === 'SHA256_MB_MGR_X8 *' || argType === 'JOB_SHA256 *') {
+       argType === 'SHA256_MB_MGR *' || argType === 'SHA256_MB_MGR_X8 *' || argType === 'JOB_SHA256 *' ||
+       argType === 'SHA512_MB_MGR *' || argType === 'SHA512_MB_MGR_X4 *' || argType === 'JOB_SHA512 *') {
         //comment += '  // TODO: support LZ_Stream1 * as argument type.\n';
         stream.write([
 '  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
 '  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
 ''
           ].join('\n'));
-      } else if (argType === 'SHA256_MB_MGR *') {
-        comment += '  // TODO: support SHA256_MB_MGR * as argument type.\n';
-      } else if (argType === 'SHA256_MB_MGR_X8 *') {
-        comment += '  // TODO: support SHA256_MB_MGR_X8 * as argument type.\n';
-      } else if (argType === 'JOB_SHA256 *') {
-        comment += '  // TODO: support JOB_SHA256 * as argument type.\n';
-      } else if (argType === 'SHA512_MB_MGR *') {
-        comment += '  // TODO: support SHA512_MB_MGR * as argument type.\n';
-      } else if (argType === 'SHA512_MB_MGR_X4 *') {
-        comment += '  // TODO: support SHA512_MB_MGR_X4 * as argument type.\n';
-      } else if (argType === 'JOB_SHA512 *') {
-        comment += '  // TODO: support JOB_SHA512 * as argument type.\n';
       } else if (argType === 'MD5_HASH_CTX_MGR *') {
         comment += '  // TODO: support MD5_HASH_CTX_MGR * as argument type.\n';
       } else if (argType === 'MD5_HASH_CTX *') {
@@ -377,7 +366,7 @@ Generator.prototype = {
     }/* else if (funcRetStr === 'void *') {
 
     } */else if (funcRetStr === 'JOB_MD5 *' || funcRetStr === 'JOB_SHA1 *' ||
-        funcRetStr === 'JOB_SHA256 *') {
+        funcRetStr === 'JOB_SHA256 *' || funcRetStr === 'JOB_SHA512 *') {
       //comment = '  //TODO: return object of JOB_MD5 *';
       stream.write([
 '',
@@ -388,8 +377,6 @@ Generator.prototype = {
 '  NanReturnValue(retObj);',
 ''
         ].join('\n'));
-    } else if (funcRetStr === 'JOB_SHA512 *') {
-      comment = '  //TODO: return object of JOB_SHA512 *';
     } else if (funcRetStr === 'MD5_HASH_CTX *') {
       comment = '  //TODO: return object of MD5_HASH_CTX *';
     } else if (funcRetStr === 'MD5_JOB *') {
