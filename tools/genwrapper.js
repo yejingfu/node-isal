@@ -274,7 +274,8 @@ Generator.prototype = {
           ].join('\n'));
       } else if (argType === 'LZ_Stream1 *' ||
        argType === 'MD5_MB_MGR *' || argType === 'MD5_MB_MGR_X8X2 *' || argType === 'JOB_MD5 *' ||
-       argType === 'SHA1_MB_MGR *' || argType === 'SHA1_MB_MGR_X8 *' || argType === 'JOB_SHA1 *') {
+       argType === 'SHA1_MB_MGR *' || argType === 'SHA1_MB_MGR_X8 *' || argType === 'JOB_SHA1 *' ||
+       argType === 'SHA256_MB_MGR *' || argType === 'SHA256_MB_MGR_X8 *' || argType === 'JOB_SHA256 *') {
         //comment += '  // TODO: support LZ_Stream1 * as argument type.\n';
         stream.write([
 '  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
@@ -375,7 +376,8 @@ Generator.prototype = {
         ].join('\n'));
     }/* else if (funcRetStr === 'void *') {
 
-    } */else if (funcRetStr === 'JOB_MD5 *' || funcRetStr === 'JOB_SHA1 *') {
+    } */else if (funcRetStr === 'JOB_MD5 *' || funcRetStr === 'JOB_SHA1 *' ||
+        funcRetStr === 'JOB_SHA256 *') {
       //comment = '  //TODO: return object of JOB_MD5 *';
       stream.write([
 '',
@@ -386,8 +388,6 @@ Generator.prototype = {
 '  NanReturnValue(retObj);',
 ''
         ].join('\n'));
-    } else if (funcRetStr === 'JOB_SHA256 *') {
-      comment = '  //TODO: return object of JOB_SHA256 *';
     } else if (funcRetStr === 'JOB_SHA512 *') {
       comment = '  //TODO: return object of JOB_SHA512 *';
     } else if (funcRetStr === 'MD5_HASH_CTX *') {
