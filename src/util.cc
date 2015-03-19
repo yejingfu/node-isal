@@ -1753,6 +1753,224 @@ NAN_METHOD(release_SHA256_HASH_CTX) {
 }
 
 
+
+/***
+* sha512_mb.h
+*/
+
+NAN_METHOD(create_SHA512_JOB) {
+  NanScope();
+  if (args.Length() != 5) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  UINT8 *buffer = (UINT8*)(node::Buffer::Data(args[idx++]->ToObject()));
+  UINT64 len = (UINT64)args[idx++]->Int32Value();
+  UINT32 result_digest[SHA512_DIGEST_NWORDS];
+  if (!cast_array(args[idx++], result_digest, SHA512_DIGEST_NWORDS, AT_UINT64)) {
+    NanThrowTypeError("Failed to parse array result_digest[SHA512_DIGEST_NWORDS]");
+    NanReturnUndefined();
+  }
+  UINT32 status = (UINT32)args[idx++]->Int32Value();
+  void *user_data = (void*)(node::Buffer::Data(args[idx++]->ToObject()));
+  SHA512_JOB * sha512_job = (SHA512_JOB*)malloc(sizeof(SHA512_JOB));
+  sha512_job->buffer = buffer;
+  sha512_job->len = len;
+  memcpy(sha512_job->result_digest, result_digest, SHA256_DIGEST_NWORDS * 8);
+  sha512_job->status = (JOB_STS)status;
+  sha512_job->user_data = user_data;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, sha512_job);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA512_JOB) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  Local<Object> jsObj = args[0]->ToObject();
+  if (jsObj.IsEmpty() || jsObj->InternalFieldCount() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA512_JOB *sha512_job = (SHA512_JOB*)NanGetInternalFieldPointer(jsObj, 0);
+  free(sha512_job);
+  NanSetInternalFieldPointer(jsObj, 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(create_SHA512_LANE_DATA) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  SHA512_JOB *job_in_lane = (SHA512_JOB*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  SHA512_LANE_DATA *data = (SHA512_LANE_DATA*)malloc(sizeof(SHA512_LANE_DATA));
+  data->job_in_lane = job_in_lane;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, data);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA512_LANE_DATA) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA512_LANE_DATA* data = (SHA512_LANE_DATA*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(data);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(create_SHA512_MB_JOB_MGR) {
+  NanScope();
+  if (args.Length() != 5) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  SHA512_MB_JOB_MGR * mgr = (SHA512_MB_JOB_MGR*)malloc(sizeof(SHA512_MB_JOB_MGR));
+  int idx = 0;
+  if (!cast_array(args[idx++], mgr->args.digest, SHA512_DIGEST_NWORDS*SHA512_MAX_LANES, AT_UINT64)) {
+    NanThrowTypeError("Failed to parse array digest[SHA512_DIGEST_NWORDS*SHA512_MAX_LANES]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  Local<Array> arr = Local<Array>::Cast(args[idx++]);
+  if (arr.IsEmpty() && arr->Length() < SHA512_MAX_LANES) {
+    free(mgr);
+    NanReturnUndefined();
+  }
+  for (int i = 0; i < SHA512_MAX_LANES; i++) {
+    mgr->args.data_ptr[i] = (UINT8*)(node::Buffer::Data(arr->Get(i)->ToObject()));
+  }
+  if (!cast_array(args[idx++], mgr->lens, SHA512_MAX_LANES, AT_UINT64)) {
+    NanThrowTypeError("Failed to parse array len[SHA512_MAX_LANES]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  mgr->unused_lanes = (UINT64)args[idx++]->Int32Value();
+  Local<Array> arr2 = Local<Array>::Cast(args[idx++]);
+  if (arr2.IsEmpty() || arr2->Length() < SHA512_MAX_LANES) {
+    NanThrowTypeError("Failed to parse array ldata[SHA512_MAX_LANES]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  for (int i = 0; i < SHA512_MAX_LANES; i++) {
+    SHA512_LANE_DATA* pData = (SHA512_LANE_DATA*)NanGetInternalFieldPointer(arr2->Get(i)->ToObject(), 0);
+    if (!pData) {
+      NanThrowTypeError("Failed to parse array ldata[SHA512_MAX_LANES] because of invalid SHA512_LANE_DATA");
+      free(mgr);
+      NanReturnUndefined();
+    }
+    mgr->ldata[i].job_in_lane = pData->job_in_lane;
+  }
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, mgr);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA512_MB_JOB_MGR) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA512_MB_JOB_MGR* mgr = (SHA512_MB_JOB_MGR*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(mgr);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+
+NAN_METHOD(create_SHA512_HASH_CTX_MGR) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  SHA512_HASH_CTX_MGR * mgr = (SHA512_HASH_CTX_MGR*)malloc(sizeof(SHA512_HASH_CTX_MGR));
+  int idx = 0;
+  SHA512_MB_JOB_MGR* pMgr = (SHA512_MB_JOB_MGR*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  mgr->mgr = *pMgr;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, mgr);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA512_HASH_CTX_MGR) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA512_HASH_CTX_MGR* mgr = (SHA512_HASH_CTX_MGR*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(mgr);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(create_SHA512_HASH_CTX) {
+  NanScope();
+  if (args.Length() != 9) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  SHA512_HASH_CTX * mgr = (SHA512_HASH_CTX*)malloc(sizeof(SHA512_HASH_CTX));
+  int idx = 0;
+  SHA512_JOB* pJob = (SHA512_JOB*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  mgr->job = *pJob;
+  mgr->status = (HASH_CTX_STS)args[idx++]->Int32Value();
+  mgr->error = (HASH_CTX_ERROR)args[idx++]->Int32Value();
+  mgr->total_length = (uint32_t)args[idx++]->Int32Value();
+  mgr->incoming_buffer = (const void*)(node::Buffer::Data(args[idx++]->ToObject()));
+  mgr->incoming_buffer_length = (uint32_t)args[idx++]->Int32Value();
+  if (!cast_array(args[idx++], mgr->partial_block_buffer, SHA512_BLOCK_SIZE*2, AT_UINT8)) {
+    NanThrowTypeError("Failed to parse array partial_block_buffer[SHA512_BLOCK_SIZE*2]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  mgr->partial_block_buffer_length = (uint32_t)args[idx++]->Int32Value();
+  mgr->user_data = (void*)(node::Buffer::Data(args[idx++]->ToObject()));
+
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, mgr);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA512_HASH_CTX) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA512_HASH_CTX* mgr = (SHA512_HASH_CTX*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(mgr);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
 void export_util_component(v8::Handle<v8::Object>& exports) {
   exports->Set(NanNew("create_LZ_State1"), NanNew<FunctionTemplate>(create_LZ_State1)->GetFunction());
   exports->Set(NanNew("release_LZ_State1"), NanNew<FunctionTemplate>(release_LZ_State1)->GetFunction());
@@ -1825,4 +2043,15 @@ void export_util_component(v8::Handle<v8::Object>& exports) {
   exports->Set(NanNew("release_SHA256_HASH_CTX_MGR"), NanNew<FunctionTemplate>(release_SHA256_HASH_CTX_MGR)->GetFunction());
   exports->Set(NanNew("create_SHA256_HASH_CTX"), NanNew<FunctionTemplate>(create_SHA256_HASH_CTX)->GetFunction());
   exports->Set(NanNew("release_SHA256_HASH_CTX"), NanNew<FunctionTemplate>(release_SHA256_HASH_CTX)->GetFunction());
+
+  exports->Set(NanNew("create_SHA512_JOB"), NanNew<FunctionTemplate>(create_SHA512_JOB)->GetFunction());
+  exports->Set(NanNew("release_SHA512_JOB"), NanNew<FunctionTemplate>(release_SHA512_JOB)->GetFunction());
+  exports->Set(NanNew("create_SHA512_LANE_DATA"), NanNew<FunctionTemplate>(create_SHA512_LANE_DATA)->GetFunction());
+  exports->Set(NanNew("release_SHA512_LANE_DATA"), NanNew<FunctionTemplate>(release_SHA512_LANE_DATA)->GetFunction());
+  exports->Set(NanNew("create_SHA512_MB_JOB_MGR"), NanNew<FunctionTemplate>(create_SHA512_MB_JOB_MGR)->GetFunction());
+  exports->Set(NanNew("release_SHA512_MB_JOB_MGR"), NanNew<FunctionTemplate>(release_SHA512_MB_JOB_MGR)->GetFunction());
+  exports->Set(NanNew("create_SHA512_HASH_CTX_MGR"), NanNew<FunctionTemplate>(create_SHA512_HASH_CTX_MGR)->GetFunction());
+  exports->Set(NanNew("release_SHA512_HASH_CTX_MGR"), NanNew<FunctionTemplate>(release_SHA512_HASH_CTX_MGR)->GetFunction());
+  exports->Set(NanNew("create_SHA512_HASH_CTX"), NanNew<FunctionTemplate>(create_SHA512_HASH_CTX)->GetFunction());
+  exports->Set(NanNew("release_SHA512_HASH_CTX"), NanNew<FunctionTemplate>(release_SHA512_HASH_CTX)->GetFunction());
 }
