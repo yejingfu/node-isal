@@ -1318,7 +1318,7 @@ NAN_METHOD(release_MD5_HASH_CTX) {
 
 
 /***
-* sh1_mb.h
+* sha1_mb.h
 */
 
 NAN_METHOD(create_SHA1_JOB) {
@@ -1535,6 +1535,224 @@ NAN_METHOD(release_SHA1_HASH_CTX) {
 }
 
 
+/***
+* sha256_mb.h
+*/
+
+NAN_METHOD(create_SHA256_JOB) {
+  NanScope();
+  if (args.Length() != 5) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  UINT8 *buffer = (UINT8*)(node::Buffer::Data(args[idx++]->ToObject()));
+  UINT32 len = (UINT32)args[idx++]->Int32Value();
+  UINT32 result_digest[SHA256_DIGEST_NWORDS];
+  if (!cast_array(args[idx++], result_digest, SHA256_DIGEST_NWORDS, AT_UINT32)) {
+    NanThrowTypeError("Failed to parse array result_digest[SHA256_DIGEST_NWORDS]");
+    NanReturnUndefined();
+  }
+  UINT32 status = (UINT32)args[idx++]->Int32Value();
+  void *user_data = (void*)(node::Buffer::Data(args[idx++]->ToObject()));
+  SHA256_JOB * sha256_job = (SHA256_JOB*)malloc(sizeof(SHA256_JOB));
+  sha256_job->buffer = buffer;
+  sha256_job->len = len;
+  memcpy(sha256_job->result_digest, result_digest, SHA256_DIGEST_NWORDS * 4);
+  sha256_job->status = (JOB_STS)status;
+  sha256_job->user_data = user_data;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, sha256_job);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA256_JOB) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  Local<Object> jsObj = args[0]->ToObject();
+  if (jsObj.IsEmpty() || jsObj->InternalFieldCount() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA256_JOB *sha256_job = (SHA256_JOB*)NanGetInternalFieldPointer(jsObj, 0);
+  free(sha256_job);
+  NanSetInternalFieldPointer(jsObj, 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(create_SHA256_LANE_DATA) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  int idx = 0;
+  SHA256_JOB *job_in_lane = (SHA256_JOB*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  SHA256_LANE_DATA *data = (SHA256_LANE_DATA*)malloc(sizeof(SHA256_LANE_DATA));
+  data->job_in_lane = job_in_lane;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, data);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA256_LANE_DATA) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA256_LANE_DATA* data = (SHA256_LANE_DATA*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(data);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(create_SHA256_MB_JOB_MGR) {
+  NanScope();
+  if (args.Length() != 5) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  SHA256_MB_JOB_MGR * mgr = (SHA256_MB_JOB_MGR*)malloc(sizeof(SHA256_MB_JOB_MGR));
+  int idx = 0;
+  if (!cast_array(args[idx++], mgr->args.digest, SHA256_DIGEST_NWORDS*SHA256_MAX_LANES, AT_UINT32)) {
+    NanThrowTypeError("Failed to parse array digest[SHA256_DIGEST_NWORDS*SHA256_MAX_LANES]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  Local<Array> arr = Local<Array>::Cast(args[idx++]);
+  if (arr.IsEmpty() && arr->Length() < SHA256_MAX_LANES) {
+    free(mgr);
+    NanReturnUndefined();
+  }
+  for (int i = 0; i < SHA256_MAX_LANES; i++) {
+    mgr->args.data_ptr[i] = (UINT8*)(node::Buffer::Data(arr->Get(i)->ToObject()));
+  }
+  if (!cast_array(args[idx++], mgr->lens, SHA256_MAX_LANES, AT_UINT32)) {
+    NanThrowTypeError("Failed to parse array len[SHA256_MAX_LANES]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  mgr->unused_lanes = (UINT64)args[idx++]->Int32Value();
+  Local<Array> arr2 = Local<Array>::Cast(args[idx++]);
+  if (arr2.IsEmpty() || arr2->Length() < SHA256_MAX_LANES) {
+    NanThrowTypeError("Failed to parse array ldata[SHA256_MAX_LANES]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  for (int i = 0; i < SHA256_MAX_LANES; i++) {
+    SHA256_LANE_DATA* pData = (SHA256_LANE_DATA*)NanGetInternalFieldPointer(arr2->Get(i)->ToObject(), 0);
+    if (!pData) {
+      NanThrowTypeError("Failed to parse array ldata[SHA256_MAX_LANES] because of invalid SHA256_LANE_DATA");
+      free(mgr);
+      NanReturnUndefined();
+    }
+    mgr->ldata[i].job_in_lane = pData->job_in_lane;
+  }
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, mgr);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA256_MB_JOB_MGR) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA256_MB_JOB_MGR* mgr = (SHA256_MB_JOB_MGR*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(mgr);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+
+NAN_METHOD(create_SHA256_HASH_CTX_MGR) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  SHA256_HASH_CTX_MGR * mgr = (SHA256_HASH_CTX_MGR*)malloc(sizeof(SHA256_HASH_CTX_MGR));
+  int idx = 0;
+  SHA256_MB_JOB_MGR* pMgr = (SHA256_MB_JOB_MGR*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  mgr->mgr = *pMgr;
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, mgr);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA256_HASH_CTX_MGR) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA256_HASH_CTX_MGR* mgr = (SHA256_HASH_CTX_MGR*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(mgr);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(create_SHA256_HASH_CTX) {
+  NanScope();
+  if (args.Length() != 9) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnUndefined();
+  }
+  SHA256_HASH_CTX * mgr = (SHA256_HASH_CTX*)malloc(sizeof(SHA256_HASH_CTX));
+  int idx = 0;
+  SHA256_JOB* pJob = (SHA256_JOB*)NanGetInternalFieldPointer(args[idx++]->ToObject(), 0);
+  mgr->job = *pJob;
+  mgr->status = (HASH_CTX_STS)args[idx++]->Int32Value();
+  mgr->error = (HASH_CTX_ERROR)args[idx++]->Int32Value();
+  mgr->total_length = (uint32_t)args[idx++]->Int32Value();
+  mgr->incoming_buffer = (const void*)(node::Buffer::Data(args[idx++]->ToObject()));
+  mgr->incoming_buffer_length = (uint32_t)args[idx++]->Int32Value();
+  if (!cast_array(args[idx++], mgr->partial_block_buffer, SHA256_BLOCK_SIZE*2, AT_UINT8)) {
+    NanThrowTypeError("Failed to parse array partial_block_buffer[SHA256_BLOCK_SIZE*2]");
+    free(mgr);
+    NanReturnUndefined();
+  }
+  mgr->partial_block_buffer_length = (uint32_t)args[idx++]->Int32Value();
+  mgr->user_data = (void*)(node::Buffer::Data(args[idx++]->ToObject()));
+
+
+  Local<ObjectTemplate> tpl = ObjectTemplate::New();
+  tpl->SetInternalFieldCount(1);
+  Local<Object> retObj = NanNew(tpl)->NewInstance();
+  NanSetInternalFieldPointer(retObj, 0, mgr);
+  NanReturnValue(retObj);
+}
+
+NAN_METHOD(release_SHA256_HASH_CTX) {
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("Invalid arguments");
+    NanReturnValue(NanFalse());
+  }
+  SHA256_HASH_CTX* mgr = (SHA256_HASH_CTX*)NanGetInternalFieldPointer(args[0]->ToObject(), 0);
+  free(mgr);
+  NanSetInternalFieldPointer(args[0]->ToObject(), 0, NULL);
+  NanReturnValue(NanTrue());
+}
+
+
 void export_util_component(v8::Handle<v8::Object>& exports) {
   exports->Set(NanNew("create_LZ_State1"), NanNew<FunctionTemplate>(create_LZ_State1)->GetFunction());
   exports->Set(NanNew("release_LZ_State1"), NanNew<FunctionTemplate>(release_LZ_State1)->GetFunction());
@@ -1596,4 +1814,15 @@ void export_util_component(v8::Handle<v8::Object>& exports) {
   exports->Set(NanNew("release_SHA1_HASH_CTX_MGR"), NanNew<FunctionTemplate>(release_SHA1_HASH_CTX_MGR)->GetFunction());
   exports->Set(NanNew("create_SHA1_HASH_CTX"), NanNew<FunctionTemplate>(create_SHA1_HASH_CTX)->GetFunction());
   exports->Set(NanNew("release_SHA1_HASH_CTX"), NanNew<FunctionTemplate>(release_SHA1_HASH_CTX)->GetFunction());
+
+  exports->Set(NanNew("create_SHA256_JOB"), NanNew<FunctionTemplate>(create_SHA256_JOB)->GetFunction());
+  exports->Set(NanNew("release_SHA256_JOB"), NanNew<FunctionTemplate>(release_SHA256_JOB)->GetFunction());
+  exports->Set(NanNew("create_SHA256_LANE_DATA"), NanNew<FunctionTemplate>(create_SHA256_LANE_DATA)->GetFunction());
+  exports->Set(NanNew("release_SHA256_LANE_DATA"), NanNew<FunctionTemplate>(release_SHA256_LANE_DATA)->GetFunction());
+  exports->Set(NanNew("create_SHA256_MB_JOB_MGR"), NanNew<FunctionTemplate>(create_SHA256_MB_JOB_MGR)->GetFunction());
+  exports->Set(NanNew("release_SHA256_MB_JOB_MGR"), NanNew<FunctionTemplate>(release_SHA256_MB_JOB_MGR)->GetFunction());
+  exports->Set(NanNew("create_SHA256_HASH_CTX_MGR"), NanNew<FunctionTemplate>(create_SHA256_HASH_CTX_MGR)->GetFunction());
+  exports->Set(NanNew("release_SHA256_HASH_CTX_MGR"), NanNew<FunctionTemplate>(release_SHA256_HASH_CTX_MGR)->GetFunction());
+  exports->Set(NanNew("create_SHA256_HASH_CTX"), NanNew<FunctionTemplate>(create_SHA256_HASH_CTX)->GetFunction());
+  exports->Set(NanNew("release_SHA256_HASH_CTX"), NanNew<FunctionTemplate>(release_SHA256_HASH_CTX)->GetFunction());
 }
