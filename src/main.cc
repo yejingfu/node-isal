@@ -15,18 +15,18 @@
 * $ node genwrapper.js
 */
 
-// #include "crc_wrapper.h"
-// #include "aes_xts_wrapper.h"
-// #include "erasure_code_wrapper.h"
-// #include "gf_vect_mul_wrapper.h"
+//#include "crc_wrapper.h"
+//#include "aes_xts_wrapper.h"
+//#include "erasure_code_wrapper.h"
+//#include "gf_vect_mul_wrapper.h"
 // #include "igzip_lib_wrapper.h"
-// #include "mb_md5_wrapper.h"
-// #include "mb_sha1_wrapper.h"
-// #include "mb_sha256_wrapper.h"
-// #include "mb_sha512_wrapper.h"
+#include "mb_md5_wrapper.h"
+#include "mb_sha1_wrapper.h"
+#include "mb_sha256_wrapper.h"
+#include "mb_sha512_wrapper.h"
 // #include "md5_mb_wrapper.h"
-// #include "mem_routines_wrapper.h"
-// #include "raid_wrapper.h"
+#include "mem_routines_wrapper.h"
+#include "raid_wrapper.h"
 // #include "sha1_mb_wrapper.h"
 // #include "sha256_mb_wrapper.h"
 // #include "sha512_mb_wrapper.h"
@@ -92,13 +92,13 @@ void Initialize(Handle<Object> exports) {
   // export_crc_component(exports);
   // export_gf_vect_mul_component(exports);
   // export_igzip_lib_component(exports);
-  // export_mb_md5_component(exports);
-  // export_mb_sha1_component(exports);
-  // export_mb_sha256_component(exports);
-  // export_mb_sha512_component(exports);
-  // export_md5_mb_component(exports);
-  // export_mem_routines_component(exports);
-  // export_raid_component(exports);
+  export_mb_md5_component(exports);
+  export_mb_sha1_component(exports);
+  export_mb_sha256_component(exports);
+  export_mb_sha512_component(exports);
+  //export_md5_mb_component(exports);
+  export_mem_routines_component(exports);
+  export_raid_component(exports);
   // export_sha1_mb_component(exports);
   // export_sha256_mb_component(exports);
   // export_sha512_mb_component(exports);

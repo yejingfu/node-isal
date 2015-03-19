@@ -6,12 +6,12 @@ var headerfiles = [
   'crc',
   'erasure_code',
   'gf_vect_mul',
-//  'igzip_lib',
+  'igzip_lib',
   'mb_md5',
   'mb_sha1',
   'mb_sha256',
   'mb_sha512',
-//  'md5_mb',
+  'md5_mb',
   'sha',
   'sha1_mb',
   'sha256_mb',
@@ -68,8 +68,7 @@ var excluded = [
   'sha512_sb_mgr_flush_sse4',
 
   'mem_cpy_sse',
-  'mem_cpy_avx',
-  'md5_mb_mgr_submit_sse'
+  'mem_cpy_avx'
 ];
 
 function filterFunction(func) {
@@ -266,7 +265,8 @@ Generator.prototype = {
           argType === 'void **') {
         stream.write([
 '  Local<Object> arg_obj_'+index+' = args['+index+']->ToObject();',
-'  '+argType+' arg_'+index+' = ('+argType+')(&((unsigned char*)node::Buffer::Data(arg_obj_'+index+')));',
+'  unsigned char* arg_'+index+'_t = (unsigned char*)node::Buffer::Data(arg_obj_'+index+');',
+'  '+argType+' arg_'+index+' = (' + argType+')&arg_'+index+'_t;',
 ''
           ].join('\n'));
       } else if (argType === 'unsigned char' || argType === 'char') {
