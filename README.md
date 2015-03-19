@@ -7,12 +7,25 @@ Node.js addon wrapping Intel ISA-L
 ```
 
 ## Build from source code
+
+- Build ISA-L library
+
+```bash
+$cd /path/to/isa-l/src
+$make
+```
+Then the static library is generated at: `/path/to/isa-l/bin/libisa-l.a`. Please modify build target in its make file to `lib_name := bin/libisa-l.a`.
+
+- Build Node addon with isa-l library
+
 The node-isal addon depends on Intel ISA-L library, so please set the environment variable `ISAL_HOME` to right path of ISA-L before building the addon.
 ```bash
   $export ISAL_HOME=/path/to/isa-l
   $node-gyp configure
   $node-gyp build
 ```
+After the build is completed, a node addon is generated at: `/path/to/node-isal/build/Release/isal.node`. Then you can include it within your Node.js project.
+
 ## Test
 - CRC API testing
 ```js
