@@ -78,3 +78,14 @@ console.log('decrypted plain data' + plainBuf.toString());
 $ node test.js
 ```
 
+## Issues
+
+- Link error, some APIs failed to build into Node.js addon, the following link error may occur:
+
+    relocation R_X86_64_32S against crc32_table_iscsi_base can not be used when making a shared object; recompile with -fPIC
+    libisa-l.a: error adding symbols: Bad value
+
+- UINT64 value may overflow when passing from Javascript to C++(addon).
+
+- Need to write more test cases.
+
