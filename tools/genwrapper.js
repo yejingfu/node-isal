@@ -6,7 +6,7 @@ var headerfiles = [
   'crc',
   'erasure_code',
   'gf_vect_mul',
-  'igzip_lib',
+//  'igzip_lib',
   'mb_md5',
   'mb_sha1',
   'mb_sha256',
