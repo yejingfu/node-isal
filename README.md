@@ -16,6 +16,17 @@ $make
 ```
 Then the static library is generated at: `/path/to/isa-l/bin/libisa-l.a`. Please modify build target in its make file to `lib_name := bin/libisa-l.a`.
 
+- Generate API wrapper using tools.
+
+```bash
+$cd /path/node-isal/tools
+$cp -r /path/isa-l/src/include ./
+$node parsecpp.js
+$node genwrapper.js
+```
+
+The batch would generate XXX_wrapper.h files under `/path/node-isal/src/`.
+
 - Build Node addon with isa-l library
 
 The node-isal addon depends on Intel ISA-L library, so please set the environment variable `ISAL_HOME` to right path of ISA-L before building the addon.
