@@ -279,36 +279,15 @@ Generator.prototype = {
        argType === 'SHA1_MB_MGR *' || argType === 'SHA1_MB_MGR_X8 *' || argType === 'JOB_SHA1 *' ||
        argType === 'SHA256_MB_MGR *' || argType === 'SHA256_MB_MGR_X8 *' || argType === 'JOB_SHA256 *' ||
        argType === 'SHA512_MB_MGR *' || argType === 'SHA512_MB_MGR_X4 *' || argType === 'JOB_SHA512 *' ||
-       argType === 'MD5_HASH_CTX_MGR *' || argType === 'MD5_HASH_CTX *' || argType === 'MD5_MB_JOB_MGR *' || argType === 'MD5_JOB *') {
+       argType === 'MD5_HASH_CTX_MGR *' || argType === 'MD5_HASH_CTX *' || argType === 'MD5_MB_JOB_MGR *' || argType === 'MD5_JOB *' ||
+       argType === 'SHA1_HASH_CTX_MGR *' || argType === 'SHA1_HASH_CTX *' || argType === 'SHA1_MB_JOB_MGR *' || argType === 'SHA1_JOB *' ||
+       argType === 'SHA256_HASH_CTX_MGR *' || argType === 'SHA256_HASH_CTX *' || argType === 'SHA256_MB_JOB_MGR *' || argType === 'SHA256_JOB *' ||
+       argType === 'SHA512_HASH_CTX_MGR *' || argType === 'SHA512_HASH_CTX *' || argType === 'SHA512_MB_JOB_MGR *' || argType === 'SHA512_JOB *') {
         stream.write([
 '  Local<Object> arg_obj_' + index + ' = args['+index+']->ToObject();',
 '  '+argType+' arg_'+index+' = ('+argType+')NanGetInternalFieldPointer(arg_obj_'+index+', 0);',
 ''
           ].join('\n'));
-      } else if (argType === 'SHA1_HASH_CTX_MGR *') {
-        comment += '  // TODO: support SHA1_HASH_CTX_MGR * as argument type.\n';
-      } else if (argType === 'SHA1_HASH_CTX *') {
-        comment += '  // TODO: support SHA1_HASH_CTX * as argument type.\n';
-      } else if (argType === 'SHA1_MB_JOB_MGR *') {
-        comment += '  // TODO: support SHA1_MB_JOB_MGR * as argument type.\n';
-      } else if (argType === 'SHA1_JOB *') {
-        comment += '  // TODO: support SHA1_JOB * as argument type.\n';
-      } else if (argType === 'SHA256_HASH_CTX_MGR *') {
-        comment += '  // TODO: support SHA256_HASH_CTX_MGR * as argument type.\n';
-      } else if (argType === 'SHA256_HASH_CTX *') {
-        comment += '  // TODO: support SHA256_HASH_CTX * as argument type.\n';
-      } else if (argType === 'SHA256_MB_JOB_MGR *') {
-        comment += '  // TODO: support SHA256_MB_JOB_MGR * as argument type.\n';
-      } else if (argType === 'SHA256_JOB *') {
-        comment += '  // TODO: support SHA256_JOB * as argument type.\n';
-      } else if (argType === 'SHA512_HASH_CTX_MGR *') {
-        comment += '  // TODO: support SHA512_HASH_CTX_MGR * as argument type.\n';
-      } else if (argType === 'SHA512_HASH_CTX *') {
-        comment += '  // TODO: support SHA512_HASH_CTX * as argument type.\n';
-      } else if (argType === 'SHA512_MB_JOB_MGR *') {
-        comment += '  // TODO: support SHA512_MB_JOB_MGR * as argument type.\n';
-      } else if (argType === 'SHA512_JOB *') {
-        comment += '  // TODO: support SHA512_JOB * as argument type.\n';
       } else {
         console.log('Failed to parse the argument: ' + argType);
       }
@@ -359,7 +338,10 @@ Generator.prototype = {
 
     } */else if (funcRetStr === 'JOB_MD5 *' || funcRetStr === 'JOB_SHA1 *' ||
         funcRetStr === 'JOB_SHA256 *' || funcRetStr === 'JOB_SHA512 *' ||
-        funcRetStr === 'MD5_HASH_CTX *' || funcRetStr === 'MD5_JOB *') {
+        funcRetStr === 'MD5_HASH_CTX *' || funcRetStr === 'MD5_JOB *' ||
+        funcRetStr === 'SHA1_HASH_CTX *' || funcRetStr === 'SHA1_JOB *' ||
+        funcRetStr === 'SHA256_HASH_CTX *' || funcRetStr === 'SHA256_JOB *' ||
+        funcRetStr === 'SHA512_HASH_CTX *' || funcRetStr === 'SHA512_JOB *') {
       //comment = '  //TODO: return object of JOB_MD5 *';
       stream.write([
 '',
@@ -370,18 +352,6 @@ Generator.prototype = {
 '  NanReturnValue(retObj);',
 ''
         ].join('\n'));
-    } else if (funcRetStr === 'SHA1_HASH_CTX *') {
-      comment = '  //TODO: return object of SHA1_HASH_CTX *';
-    } else if (funcRetStr === 'SHA1_JOB *') {
-      comment = '  //TODO: return object of SHA1_JOB *';
-    } else if (funcRetStr === 'SHA256_HASH_CTX *') {
-      comment = '  //TODO: return object of SHA256_HASH_CTX *';
-    } else if (funcRetStr === 'SHA256_JOB *') {
-      comment = '  //TODO: return object of SHA256_JOB *';
-    } else if (funcRetStr === 'SHA512_HASH_CTX *') {
-      comment = '  //TODO: return object of SHA512_HASH_CTX *';
-    } else if (funcRetStr === 'SHA512_JOB *') {
-      comment = '  //TODO: return object of SHA512_JOB *';
     } else {
       console.log('Failed to recognize the return type: ' + funcRetStr);
     }
