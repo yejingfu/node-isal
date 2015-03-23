@@ -19,8 +19,8 @@ Then the static library is generated at: `/path/to/isa-l/bin/libisa-l.a`. Please
 - Generate API wrapper using tools.
 
 ```bash
-$cd /path/node-isal/tools
-$cp -r /path/isa-l/src/include ./
+$cd /path/to/node-isal/tools
+$cp -r /path/to/isa-l/src/include ./
 $node parsecpp.js
 $node genwrapper.js
 ```
